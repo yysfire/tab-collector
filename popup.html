@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tab Collector</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="logo">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2" y="4" width="24" height="18" rx="3" stroke="white" stroke-width="2" fill="none"/>
+          <rect x="5" y="7" width="8" height="3" rx="1" fill="white" opacity="0.7"/>
+          <rect x="15" y="7" width="8" height="3" rx="1" fill="white" opacity="0.7"/>
+          <rect x="5" y="12" width="18" height="3" rx="1" fill="white" opacity="0.5"/>
+          <rect x="5" y="17" width="7" height="3" rx="1" fill="white" opacity="0.5"/>
+        </svg>
+      </div>
+      <h1 class="title">Tab Collector</h1>
+    </header>
+
+    <!-- Stats Section -->
+    <section class="stats-section">
+      <div class="stat-card">
+        <div class="stat-label">当前窗口</div>
+        <div class="stat-value" id="tabCount">—</div>
+        <div class="stat-unit">个标签页</div>
+      </div>
+    </section>
+
+    <!-- Action Section -->
+    <section class="action-section">
+      <button id="saveBtn" class="save-btn" disabled>
+        <svg class="btn-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M5 2C3.89543 2 3 2.89543 3 4V16C3 17.1046 3.89543 18 5 18H15C16.1046 18 17 17.1046 17 16V6.82843C17 6.29799 16.7893 5.78929 16.4142 5.41421L13.5858 2.58579C13.2107 2.21071 12.702 2 12.1716 2H5Z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <path d="M6 2V7H12V2" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <path d="M7 12H13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M7 15H11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span>保存全部标签页</span>
+      </button>
+    </section>
+
+    <!-- Feedback Toast -->
+    <div id="toast" class="toast hidden">
+      <span class="toast-icon">✅</span>
+      <span class="toast-text">保存成功！</span>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

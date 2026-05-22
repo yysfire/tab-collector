@@ -1,0 +1,18 @@
+# WorkBuddy state
+.workbuddy/
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Local dev artifacts
+icon-generator.html
+
+# Dependencies (if any in the future)
+node_modules/
