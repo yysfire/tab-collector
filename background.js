@@ -51,6 +51,11 @@ function escapeMdTitle(title) {
   return (title || 'Untitled').replace(/[[\]*_`#|]/g, '\\$&');
 }
 
+/** 将 Markdown 文本转为 Data URL（Service Worker 中替代 Blob/URL.createObjectURL） */
+function markdownToDataUrl(markdown) {
+  return 'data:text/markdown;charset=UTF-8,' + encodeURIComponent(markdown);
+}
+
 /**
  * 根据标签页数组生成 Markdown 内容（单标签页格式）。
  * @param {chrome.tabs.Tab} tab
@@ -108,14 +113,8 @@ async function handleCopySingleTab(tab) {
   const dateTimeStr = formatDateTime(now);
   const markdown = buildSingleMd(tab, dateTimeStr);
 
-  // 用 chrome.scripting 在 popup 中执行复制？不行，没有 activeTab 或 scripting 权限。
-  // 最可靠的方式：通过 downloads API 写入一个小文件，或直接下载。
-  // 但对于"复制"，更好的方式是用 chrome.downloads 直接提供 blob URL 下载。
-  // 或者用 notify 提示用户已复制，但 SW 无法访问 Clipboard API。
-  //
-  // 替代方案：直接用 downloads API 下载单标签页文件
-  const blob = new Blob([markdown], { type: 'text/markdown;charset=UTF-8' });
-  const url = URL.createObjectURL(blob);
+  // Service Worker 中无法使用 Blob/URL.createObjectURL，改用 Data URL
+  const url = markdownToDataUrl(markdown);
   const filename = 'tab-' + formatFileDateTime(now) + '-' + sanitizeFilename(tab.title) + '.md';
 
   chrome.downloads.download({
@@ -124,8 +123,6 @@ async function handleCopySingleTab(tab) {
     saveAs: false,
     conflictAction: 'uniquify',
   });
-
-  setTimeout(() => URL.revokeObjectURL(url), 5000);
 }
 
 /** 处理保存全部标签页 */
@@ -136,8 +133,8 @@ async function handleSaveAllTabs(tab) {
   const now = new Date();
   const dateTimeStr = formatDateTime(now);
   const markdown = buildMultiMd(tabs, dateTimeStr);
-  const blob = new Blob([markdown], { type: 'text/markdown;charset=UTF-8' });
-  const url = URL.createObjectURL(blob);
+  // Service Worker 中无法使用 Blob/URL.createObjectURL，改用 Data URL
+  const url = markdownToDataUrl(markdown);
   const filename = 'tabs-' + formatFileDateTime(now) + '.md';
 
   chrome.downloads.download({
@@ -146,8 +143,6 @@ async function handleSaveAllTabs(tab) {
     saveAs: false,
     conflictAction: 'uniquify',
   });
-
-  setTimeout(() => URL.revokeObjectURL(url), 5000);
 }
 
 /** 从标题中提取安全的文件名片段 */
