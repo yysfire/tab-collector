@@ -89,13 +89,13 @@ function createContextMenus() {
     chrome.contextMenus.create({
       id: 'copy-tab-md',
       title: '复制此标签页为 Markdown',
-      contexts: ['tab'],
+      contexts: ['page'],
     });
 
     chrome.contextMenus.create({
       id: 'save-all-tabs-md',
       title: '保存全部标签页为 Markdown',
-      contexts: ['tab'],
+      contexts: ['page'],
     });
   });
 }
