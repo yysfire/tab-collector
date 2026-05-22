@@ -6,8 +6,10 @@
   "author": "Tab Collector Team",
   "homepage_url": "https://github.com/user/tab-collector",
   "permissions": [
+    "activeTab",
     "contextMenus",
     "downloads",
+    "scripting",
     "tabs"
   ],
   "action": {

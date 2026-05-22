@@ -56,20 +56,7 @@ function markdownToDataUrl(markdown) {
   return 'data:text/markdown;charset=UTF-8,' + encodeURIComponent(markdown);
 }
 
-/**
- * 根据标签页数组生成 Markdown 内容（单标签页格式）。
- * @param {chrome.tabs.Tab} tab
- * @param {string} dateTimeStr
- * @returns {string}
- */
-function buildSingleMd(tab, dateTimeStr) {
-  const title = escapeMdTitle(tab.title);
-  const url = tab.url || 'about:blank';
-  return [`# Tabs - ${dateTimeStr}`, '', `- [${title}](${url})`, ''].join('\n');
-}
-
-/**
- * 根据标签页数组生成 Markdown 内容（多标签页格式）。
+/** 根据标签页数组生成 Markdown 内容（多标签页格式）。
  * @param {chrome.tabs.Tab[]} tabs
  * @param {string} dateTimeStr
  * @returns {string}
@@ -93,7 +80,7 @@ function createContextMenus() {
   chrome.contextMenus.removeAll(function () {
     chrome.contextMenus.create({
       id: 'copy-tab-md',
-      title: '复制此标签页为 Markdown',
+      title: '复制此标签页链接',
       contexts: ['page'],
     });
 
@@ -107,21 +94,24 @@ function createContextMenus() {
 
 /* ===== 右键菜单点击处理 ===== */
 
-/** 复制文本到剪贴板（通过后台页面无法直接访问 Clipboard API，所以用 downloads 写临时文件走下载窗口） */
-async function handleCopySingleTab(tab) {
-  const now = new Date();
-  const dateTimeStr = formatDateTime(now);
-  const markdown = buildSingleMd(tab, dateTimeStr);
+/** 复制当前标签页链接为 Markdown 格式 [标题](URL) 到剪贴板 */
+function handleCopySingleTab(tab) {
+  const title = escapeMdTitle(tab.title);
+  const url = tab.url || 'about:blank';
+  const markdown = `- [${title}](${url})`;
 
-  // Service Worker 中无法使用 Blob/URL.createObjectURL，改用 Data URL
-  const url = markdownToDataUrl(markdown);
-  const filename = 'tab-' + formatFileDateTime(now) + '-' + sanitizeFilename(tab.title) + '.md';
-
-  chrome.downloads.download({
-    url: url,
-    filename: filename,
-    saveAs: false,
-    conflictAction: 'uniquify',
+  // 通过 scripting.executeScript 在目标页面中调用 navigator.clipboard.writeText
+  // (activeTab 权限允许在用户交互触发的上下文中注入脚本)
+  chrome.scripting.executeScript({
+    target: { tabId: tab.id },
+    func: (text) => {
+      navigator.clipboard.writeText(text).catch((err) => {
+        console.error('[TabCollector] 剪贴板写入失败:', err);
+      });
+    },
+    args: [markdown],
+  }).catch((err) => {
+    console.error('[TabCollector] 注入脚本失败:', err);
   });
 }
 
@@ -143,16 +133,6 @@ async function handleSaveAllTabs(tab) {
     saveAs: false,
     conflictAction: 'uniquify',
   });
-}
-
-/** 从标题中提取安全的文件名片段 */
-function sanitizeFilename(title) {
-  if (!title) return 'untitled';
-  return title
-    .replace(/[<>:"/\\|?*]/g, '')
-    .replace(/\s+/g, '_')
-    .replace(/\.+$/, '')
-    .substring(0, 48) || 'untitled';
 }
 
 /* ===== 事件绑定 ===== */
